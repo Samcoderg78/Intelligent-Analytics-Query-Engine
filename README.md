@@ -1,36 +1,69 @@
 # Intelligent Analytics Query Engine
 
-Converts natural-language questions about the sales dataset into SQL, runs the query, and returns:
+Converts natural language questions about a sales dataset into SQL, executes them, and returns the result with a confidence score and a plain-language explanation.
 
-- the result
-- a confidence score
-- a plain-language explanation of what was understood and how the answer was produced
+## Features
+
+- Natural language to SQL translation (aggregations, grouping, filtering, ranking, target comparisons, YoY growth, contribution %)
+- Executes generated SQL against an in-memory SQLite database
+- GenAI-powered query understanding (Gemini API), with a rule-based fallback when no API key is set
+- Confidence score per query
+- Human-readable explanation per query
+- Optional feedback loop via `feedback_log.csv`
 
 ## Setup
 
 ```bash
+git clone <repo-url>
+cd analytics_query_engine
 pip install -r requirements.txt
 ```
 
-## Run all default queries
+GenAI usage is optional. To enable it, get a free key from [Google AI Studio](https://aistudio.google.com) and set it as an environment variable:
+
+```bash
+# macOS / Linux
+export GEMINI_API_KEY="AIza..."
+
+# Windows PowerShell
+$env:GEMINI_API_KEY = "AIza..."
+```
+
+Without a key set, the system runs fully offline using a rule-based parser.
+
+## Usage
+
+Run all queries from `dataset/nl_queries.json`:
 
 ```bash
 python main.py
 ```
 
-This reads each query from `dataset/nl_queries.json` and writes all results to `output/output.json`.
+Results are printed to the console and written to `output/output.json`.
 
-## Run one custom question
+Run a single ad-hoc query:
 
 ```bash
 python main.py "Top 3 customers in EMEA"
 ```
 
-## Optional Gemini integration
+## Output format
 
-If `GEMINI_API_KEY` is set, the app uses Gemini for parsing and explanation generation. If it is not set, the app automatically falls back to the built-in rule-based parser.
-
-```bash
-export GEMINI_API_KEY="AIza..."
-python main.py
+```json
+{
+  "query": "Total sales in India for March",
+  "generated_logic": "SELECT SUM(revenue) AS revenue FROM sales_v WHERE country = 'India' AND month = '2024-03';",
+  "result": 108.0,
+  "confidence_score": 1.0,
+  "explanation": "The question asked for the overall sales revenue generated in India during March 2024. This was calculated by summing the revenue field after filtering by country and month."
+}
 ```
+
+## Requirements
+
+- Python 3.9+
+- `requests`
+
+## License
+
+For evaluation purposes as part of an assignment submission.
